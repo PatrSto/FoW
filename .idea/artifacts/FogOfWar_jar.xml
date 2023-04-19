@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="FogOfWar:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/FogOfWar_jar</output-path>
+    <root id="root">
+      <element id="archive" name="FogOfWar.jar">
+        <element id="module-output" name="FogOfWar" />
+      </element>
+    </root>
+  </artifact>
+</component>
