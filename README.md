@@ -1,4 +1,4 @@
-My Program
+Fog of War
 
 A Simple Java application that provides a user interface for working with images and fog of war layers for your DnD Session. It's still in development.
 
