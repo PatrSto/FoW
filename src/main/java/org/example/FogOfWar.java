@@ -30,20 +30,28 @@ public class FogOfWar {
     }
 
     private static void createAndShowGUI() throws IOException {
+        // Set Look and Feel
         setLookAndFeel();
+
+        // Tab dimensions
         int tabWidth = 150;
         int tabHeight = 20;
+
         // Create the main frames
+        // Dungeon Master frame
         JFrame dmFrame = new JFrame("Dungeon Master");
         dmFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // Dungeon Master tabbed pane
         JTabbedPane dmTabbedPane = new JTabbedPane();
         dmTabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         dmTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight)); // Set fixed size for the tabs
 
-        // Initialize playerTabbedPane before creating the toolbar
+        // Players frame
         JFrame playerFrame = new JFrame("Players");
         playerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Players tabbed pane
         playerTabbedPane = new JTabbedPane();
         playerTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight)); // Set fixed size for the tabs
         playerTabbedPane.setUI(new BasicTabbedPaneUI() {
@@ -58,7 +66,7 @@ public class FogOfWar {
         dmFrame.add(toolbar, BorderLayout.NORTH);
         dmFrame.add(dmTabbedPane);
 
-
+        // Synchronize selected tab between Dungeon Master and Players tabbed panes
         dmTabbedPane.addChangeListener(e -> {
             int selectedIndex = dmTabbedPane.getSelectedIndex();
             if (selectedIndex >= 0 && selectedIndex < dmTabbedPane.getTabCount() && playerTabbedPane.getTabCount() > 0) {
@@ -66,18 +74,20 @@ public class FogOfWar {
             }
         });
 
+        // Configure and display Dungeon Master frame
         dmFrame.pack();
         dmFrame.setLocationRelativeTo(null);
         dmFrame.setSize(800, 800);
         dmFrame.setVisible(true);
 
+        // Configure and display Players frame
         playerFrame.add(playerTabbedPane);
-
         playerFrame.pack();
         playerFrame.setLocationRelativeTo(dmFrame);
         playerFrame.setSize(800, 800);
         playerFrame.setVisible(true);
 
+        // Fullscreen functionality for Players frame
         playerFrame.addWindowStateListener(e -> {
             if ((e.getNewState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH) {
                 playerFrame.dispose();
@@ -96,12 +106,13 @@ public class FogOfWar {
             }
         };
 
+        // Assign the escape key listener to the Players frame
         playerFrame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(escapeKeyStroke, "ESCAPE");
         playerFrame.getRootPane().getActionMap().put("ESCAPE", escapeAction);
     }
 
-
+    // Create a fog layer with the specified dimensions
     private static BufferedImage createFogLayer(int width, int height) {
         BufferedImage fogLayer = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = fogLayer.createGraphics();
@@ -111,13 +122,13 @@ public class FogOfWar {
         return fogLayer;
     }
 
+    // Create the toolbar with buttons and actions
     private static JToolBar createToolbar(JFrame dmFrame, JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane) {
         JToolBar toolbar = new JToolBar();
         toolbar.setPreferredSize(new Dimension(toolbar.getWidth(), 30));
-//        toolbar.setBackground(new Color(54, 54, 54));
         toolbar.setFloatable(false);
 
-
+        // Toggle fog drag button
         JToggleButton toggleFogDragButton = new JToggleButton(new ImageIcon(Objects.requireNonNull(FogOfWar.class.getResource("/images/move.png"))));
         toggleFogDragButton.addActionListener(e -> {
             FogPanel selectedPanel = (FogPanel) dmTabbedPane.getSelectedComponent();
@@ -219,7 +230,7 @@ public class FogOfWar {
         fogRadiusSlider.setMajorTickSpacing(50);
         fogRadiusSlider.setPaintTicks(false);
         fogRadiusSlider.setPaintLabels(false);
-        fogRadiusSlider.setPreferredSize(new Dimension(150,30));
+        fogRadiusSlider.setPreferredSize(new Dimension(150, 30));
         // Create a JPanel with FlowLayout to wrap the slider
         JPanel sliderPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         sliderPanel.add(fogRadiusSlider);
@@ -250,6 +261,8 @@ public class FogOfWar {
 
         return toolbar;
     }
+
+    // Set the Look and Feel of the application
     private static void setLookAndFeel() {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
@@ -259,18 +272,24 @@ public class FogOfWar {
     }
 
 
+    // Load more pictures for the Dungeon Master and Player tabbed panes
     private static void loadMorePictures(JFrame dmFrame, JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane, JToggleButton toggleFogDragButton) throws IOException {
+        // Configure file chooser for image files
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(true);
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif", "bmp");
         fileChooser.setFileFilter(filter);
 
+        // Show the file chooser and store the user's selection
         int returnValue = fileChooser.showOpenDialog(dmFrame);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             for (File file : selectedFiles) {
+                // Read the image from the file and create a fog layer for it
                 BufferedImage image = ImageIO.read(file);
                 BufferedImage fogLayer = createFogLayer(image.getWidth(), image.getHeight());
+
+                // Create FogPanels for the Dungeon Master and Player tabs
                 FogPanel dmFogPanel = new FogPanel(image, fogLayer, true);
                 FogPanel playerFogPanel = new FogPanel(image, fogLayer, false);
 
@@ -279,6 +298,7 @@ public class FogOfWar {
                 dmFogPanel.setMouseMode(mouseMode);
                 playerFogPanel.setMouseMode(mouseMode);
 
+                // Link the panels and add them to the tabbed panes
                 dmFogPanel.setPlayerPanel(playerFogPanel);
                 dmTabbedPane.addTab(file.getName(), dmFogPanel);
                 int tabIndex = dmTabbedPane.indexOfComponent(dmFogPanel);
@@ -290,36 +310,47 @@ public class FogOfWar {
             }
         }
     }
+
+    // Save the state of all tabs in the Dungeon Master tabbed pane
     private static void saveAllTabsState(JTabbedPane dmTabbedPane) throws IOException {
+        // Create an AllTabsState object to store the state of all images
         AllTabsState allTabsState = new AllTabsState();
         for (int i = 0; i < dmTabbedPane.getTabCount(); i++) {
+            // Retrieve the FogPanel and its state
             FogPanel panel = (FogPanel) dmTabbedPane.getComponentAt(i);
             String tabName = dmTabbedPane.getTitleAt(i);
             ImageState imageState = new ImageState(panel.getImage(), panel.getFogLayer(), panel.getScaleFactor(), panel.getRotation(), tabName);
             allTabsState.getImageStates().add(imageState);
         }
 
+        // Configure and show a file chooser for saving the state
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Save All Tabs State");
         int userSelection = fileChooser.showSaveDialog(null);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
+            // Save the AllTabsState object to the selected file
             File fileToSave = fileChooser.getSelectedFile();
             String filePath = fileToSave.getAbsolutePath();
             if (!filePath.endsWith(".fow")) {
                 fileToSave = new File(filePath + ".fow");
             }
+            // Save the AllTabsState object to the selected file
             try (FileOutputStream fos = new FileOutputStream(fileToSave);
                  ObjectOutputStream oos = new ObjectOutputStream(fos)) {
                 oos.writeObject(allTabsState);
             }
         }
     }
+
+    // Load and apply the state of all tabs from a file
     private static void openAllTabsState(JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane)
             throws IOException, ClassNotFoundException {
+        // Configure and show a file chooser for opening the state file
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Open All Tabs State");
         int userSelection = fileChooser.showOpenDialog(null);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
+            // Read the AllTabsState object from the selected file
             File fileToOpen = fileChooser.getSelectedFile();
             String filePath = fileToOpen.getAbsolutePath();
             if (!filePath.endsWith(".fow")) {
@@ -334,23 +365,25 @@ public class FogOfWar {
                 dmTabbedPane.removeAll();
                 playerTabbedPane.removeAll();
 
+                // Create new FogPanels with the loaded image states and add them to the tabbed panes
                 for (ImageState imageState : allTabsState.getImageStates()) {
+                    // Retrieve the image, fog layer, scale factor, and rotation from the image state
                     BufferedImage image = imageState.getImage();
                     BufferedImage fogLayer = imageState.getFogLayer();
                     double scaleFactor = imageState.getScaleFactor();
                     int rotation = imageState.getRotation();
-                    // Create new FogPanels with the loaded image state
 
+                    // Create new FogPanels with the loaded image state
                     FogPanel dmPanel = new FogPanel(image, fogLayer, true);
                     FogPanel playerPanel = new FogPanel(image, fogLayer, false);
 
                     // Apply scaleFactor and rotation
-                    dmPanel.applyRotation(rotation);  // Updated method
-                    playerPanel.applyRotation(rotation);  // Updated method
+                    dmPanel.applyRotation(rotation);
+                    playerPanel.applyRotation(rotation);
                     dmPanel.zoom(scaleFactor / dmPanel.getScaleFactor());
                     playerPanel.zoom(scaleFactor / playerPanel.getScaleFactor());
 
-                    // Add panels to the tabbed panes
+                    // Add panels to the tabbed panes and link them
                     dmPanel.setPlayerPanel(playerPanel);
                     playerPanel.setPlayerPanel(dmPanel);
 
@@ -361,7 +394,6 @@ public class FogOfWar {
                     dmTabbedPane.setTabComponentAt(tabIndex, tabLabel);
 
                     playerTabbedPane.addTab(imageState.getTabName(), playerPanel);
-
                 }
             }
         }

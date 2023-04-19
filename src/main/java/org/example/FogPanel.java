@@ -7,7 +7,9 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
-public class FogPanel extends JPanel {
+// Custom JPanel class for displaying an image with a fog of war overlay
+ public class FogPanel extends JPanel {
+    // Declare required attributes
     private BufferedImage image;
     private BufferedImage fogLayer;
     private final boolean isDmPanel;
@@ -18,16 +20,16 @@ public class FogPanel extends JPanel {
     private Point lastMousePosition;
     private Point translation;
 
-    // Add the MouseMode enum
+    // Enum for different mouse modes (removing fog or dragging the image)
     public enum MouseMode {
         REMOVE_FOG,
         DRAG_IMAGE
     }
 
-    // Add the mouseMode attribute
+    // Declare and initialize the mouseMode attribute
     private MouseMode mouseMode = MouseMode.REMOVE_FOG;
 
-    // Add the setMouseMode and getMouseMode methods
+    // Set and get the mouse mode
     public void setMouseMode(MouseMode mode) {
         this.mouseMode = mode;
         updateCursor();
@@ -36,6 +38,7 @@ public class FogPanel extends JPanel {
         return mouseMode;
     }
 
+    // Constructor for the FogPanel class
     public FogPanel(BufferedImage image, BufferedImage fogLayer, boolean isDmPanel) {
         this.image = image;
         this.fogLayer = fogLayer;
@@ -46,9 +49,9 @@ public class FogPanel extends JPanel {
         lastMousePosition = new Point(0, 0);
         translation = new Point(0, 0);
 
-        // Modify the MouseAdapter
+        // Create and add a custom MouseAdapter for handling mouse events
         MouseAdapter mouseAdapter = new MouseAdapter() {
-
+            // ... event handlers for mouse actions
             @Override
             public void mouseEntered(MouseEvent e) {
                 updateCursor();
@@ -108,7 +111,7 @@ public class FogPanel extends JPanel {
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
     }
-
+    // Update the cursor based on the current mouse mode
     private void updateCursor() {
         if (mouseMode == MouseMode.DRAG_IMAGE) {
             setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
@@ -116,7 +119,7 @@ public class FogPanel extends JPanel {
             setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         }
     }
-
+    // Override the paint method to draw a buffered image
     @Override
     public void paint(Graphics g) {
         BufferedImage buffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -125,7 +128,7 @@ public class FogPanel extends JPanel {
         g.drawImage(buffer, 0, 0, null);
         bufferGraphics.dispose();
     }
-
+    // Override the paintComponent method to draw the image, fog layer, and other elements
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -155,7 +158,7 @@ public class FogPanel extends JPanel {
 
         g2d.dispose();
     }
-
+    // Set and get the associated player panel
     public void setPlayerPanel(FogPanel playerPanel) {
         this.playerPanel = playerPanel;
     }
@@ -163,7 +166,7 @@ public class FogPanel extends JPanel {
     public FogPanel getPlayerPanel() {
         return playerPanel;
     }
-
+    // Method to zoom the image and fog layer based on a scaling factor
     public void zoom(double newScaleFactor) {
         scaleFactor *= newScaleFactor;
         int newWidth = (int) (image.getWidth() * scaleFactor);
@@ -178,13 +181,14 @@ public class FogPanel extends JPanel {
             playerPanel.zoom(newScaleFactor);
         }
     }
+    // Set the radius of the fog clearing/adding area
     public void setFogRadius(int amount) {
         fogRadius = amount;
         if (fogRadius < 1) {
             fogRadius = 1;
         }
     }
-
+    // Clear fog at the specified point
     private void clearFogAtPoint(int x, int y) {
         int offsetX = (getWidth() - (int) (image.getWidth() * scaleFactor)) / 2 + translation.x;
         int offsetY = (getHeight() - (int) (image.getHeight() * scaleFactor)) / 2 + translation.y;
@@ -205,7 +209,7 @@ public class FogPanel extends JPanel {
             playerPanel.repaint();
         }
     }
-
+    // Add fog at the specified point
     private void addFogAtPoint(int x, int y) {
         int offsetX = (getWidth() - (int) (image.getWidth() * scaleFactor)) / 2 + translation.x;
         int offsetY = (getHeight() - (int) (image.getHeight() * scaleFactor)) / 2 + translation.y;
@@ -229,7 +233,7 @@ public class FogPanel extends JPanel {
     }
 
 
-
+    // Reveal all fog on the image
     public void revealFog() {
         Graphics2D g = fogLayer.createGraphics();
         g.setComposite(AlphaComposite.Clear);
@@ -240,7 +244,7 @@ public class FogPanel extends JPanel {
             playerPanel.repaint();
         }
     }
-
+    // Reset the fog layer to cover the entire image
     public void resetFog() {
         Graphics2D g = fogLayer.createGraphics();
         g.setComposite(AlphaComposite.SrcOver);
@@ -252,7 +256,7 @@ public class FogPanel extends JPanel {
             playerPanel.repaint();
         }
     }
-
+    // Rotate the image and fog layer by 90 degrees
     public void rotateImage() {
         rotation = (rotation + 90) % 360; // Add this line
         int w = image.getWidth();
@@ -289,7 +293,7 @@ public class FogPanel extends JPanel {
             playerPanel.repaint(); // Repaint the player panel
         }
     }
-
+    // Apply a specific rotation to the image and fog layer
     public void applyRotation(int rotation) {
         AffineTransform transform = new AffineTransform();
         double centerX = image.getWidth() / 2.0;
@@ -299,7 +303,7 @@ public class FogPanel extends JPanel {
         this.rotation %= 360;
         repaint();
     }
-
+    // Set the translation of the image and fog layer
     public void setTranslation(Point translation) {
         if (!this.translation.equals(translation)) {
             this.translation = translation;
@@ -309,6 +313,7 @@ public class FogPanel extends JPanel {
             repaint();
         }
     }
+    // Add a translation to the current image and fog layer translation
     public void addTranslation(int dx, int dy, boolean updatePlayerPanel) {
         translation.x += dx;
         translation.y += dy;
@@ -317,7 +322,7 @@ public class FogPanel extends JPanel {
         }
         repaint();
     }
-
+    // Getters for image, fog layer, scale factor, and rotation
     public BufferedImage getImage() {
         return image;
     }
