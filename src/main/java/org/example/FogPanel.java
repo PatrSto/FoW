@@ -86,7 +86,10 @@ import java.awt.image.BufferedImage;
                             addFogAtPoint(e.getX(), e.getY());
                         }
                     } else if (mouseMode == MouseMode.DRAG_IMAGE) {
-                        // ... existing code for dragging image
+                        int dx = e.getX() - lastMousePosition.x;
+                        int dy = e.getY() - lastMousePosition.y;
+                        addTranslation(dx, dy, true);
+                        lastMousePosition = e.getPoint();
                     }
                 }
             }
