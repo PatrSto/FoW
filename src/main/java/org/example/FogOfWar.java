@@ -222,7 +222,7 @@ public class FogOfWar {
         JButton saveButton = new JButton(new ImageIcon(Objects.requireNonNull(FogOfWar.class.getResource("/images/diskette.png"))));
         saveButton.addActionListener(e -> {
             try {
-                saveAllTabsState(dmFrame, dmTabbedPane);
+                saveAllTabsState(dmTabbedPane);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -232,7 +232,7 @@ public class FogOfWar {
         JButton openButton = new JButton(new ImageIcon(Objects.requireNonNull(FogOfWar.class.getResource("/images/folder.png"))));
         openButton.addActionListener(e -> {
             try {
-                openAllTabsState(dmFrame, dmTabbedPane, playerTabbedPane);
+                openAllTabsState(dmTabbedPane, playerTabbedPane);
             } catch (IOException | ClassNotFoundException ex) {
                 ex.printStackTrace();
             }
@@ -346,7 +346,7 @@ public class FogOfWar {
     }
 
     // Save the state of all tabs in the Dungeon Master tabbed pane
-    private static void saveAllTabsState(JFrame dmFrame, JTabbedPane dmTabbedPane) throws IOException {
+    private static void saveAllTabsState(JTabbedPane dmTabbedPane) throws IOException {
         // Create an AllTabsState object to store the state of all images
         AllTabsState allTabsState = new AllTabsState();
         for (int i = 0; i < dmTabbedPane.getTabCount(); i++) {
@@ -377,7 +377,7 @@ public class FogOfWar {
     }
 
     // Load and apply the state of all tabs from a file
-    private static void openAllTabsState(JFrame dmFrame, JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane)            throws IOException, ClassNotFoundException {
+    private static void openAllTabsState(JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane)            throws IOException, ClassNotFoundException {
         // Configure and show a file chooser for opening the state file
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Open All Tabs State");
@@ -397,11 +397,6 @@ public class FogOfWar {
                 // Close all existing tabs
                 dmTabbedPane.removeAll();
                 playerTabbedPane.removeAll();
-
-                // Get the current screen index
-                GraphicsConfiguration gc = dmFrame.getGraphicsConfiguration();
-                GraphicsDevice currentScreen = gc.getDevice();
-                int currentScreenIndex = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).indexOf(currentScreen);
 
                 // Create new FogPanels with the loaded image states and add them to the tabbed panes
                 for (ImageState imageState : allTabsState.getImageStates()) {
