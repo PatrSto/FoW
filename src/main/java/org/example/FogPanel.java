@@ -325,6 +325,33 @@ import java.awt.image.BufferedImage;
         }
         repaint();
     }
+    public void adjustScaleFactor(double screenWidth, double screenHeight) {
+        double imageWidth = image.getWidth();
+        double imageHeight = image.getHeight();
+
+        double widthRatio = screenWidth / imageWidth;
+        double heightRatio = screenHeight / imageHeight;
+
+        scaleFactor = Math.min(widthRatio, heightRatio);
+        setPreferredSize(new Dimension((int) (imageWidth * scaleFactor), (int) (imageHeight * scaleFactor)));
+        revalidate();
+        repaint();
+        if (!isDmPanel) {
+            return;
+        }
+        if (playerPanel != null) {
+            playerPanel.adjustScaleFactor(screenWidth, screenHeight);
+        }
+        updatePreferredSize();
+    }
+
+    public void updatePreferredSize() {
+        setPreferredSize(new Dimension((int) (image.getWidth() * scaleFactor), (int) (image.getHeight() * scaleFactor)));
+        revalidate();
+        repaint();
+    }
+
+
     // Getters for image, fog layer, scale factor, and rotation
     public BufferedImage getImage() {
         return image;

@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.Arrays;
 import java.util.Objects;
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -45,7 +46,8 @@ public class FogOfWar {
         // Dungeon Master tabbed pane
         JTabbedPane dmTabbedPane = new JTabbedPane();
         dmTabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-        dmTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight)); // Set fixed size for the tabs
+        // Set fixed size for the tabs
+        dmTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight));
 
         // Players frame
         JFrame playerFrame = new JFrame("Players");
@@ -111,6 +113,24 @@ public class FogOfWar {
                 .put(escapeKeyStroke, "ESCAPE");
         playerFrame.getRootPane().getActionMap().put("ESCAPE", escapeAction);
     }
+
+    public static Dimension getScreenResolution(int screenIndex) {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gd = ge.getScreenDevices();
+        if (screenIndex >= 0 && screenIndex < gd.length) {
+            DisplayMode dm = gd[screenIndex].getDisplayMode();
+            int screenWidth = dm.getWidth();
+            int screenHeight = dm.getHeight();
+            return new Dimension(screenWidth, screenHeight);
+        } else {
+            // Return primary screen resolution if the provided index is invalid
+            DisplayMode dm = gd[0].getDisplayMode();
+            int screenWidth = dm.getWidth();
+            int screenHeight = dm.getHeight();
+            return new Dimension(screenWidth, screenHeight);
+        }
+    }
+
 
     // Create a fog layer with the specified dimensions
     private static BufferedImage createFogLayer(int width, int height) {
@@ -202,7 +222,7 @@ public class FogOfWar {
         JButton saveButton = new JButton(new ImageIcon(Objects.requireNonNull(FogOfWar.class.getResource("/images/diskette.png"))));
         saveButton.addActionListener(e -> {
             try {
-                saveAllTabsState(dmTabbedPane);
+                saveAllTabsState(dmFrame, dmTabbedPane);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -212,7 +232,7 @@ public class FogOfWar {
         JButton openButton = new JButton(new ImageIcon(Objects.requireNonNull(FogOfWar.class.getResource("/images/folder.png"))));
         openButton.addActionListener(e -> {
             try {
-                openAllTabsState(dmTabbedPane, playerTabbedPane);
+                openAllTabsState(dmFrame, dmTabbedPane, playerTabbedPane);
             } catch (IOException | ClassNotFoundException ex) {
                 ex.printStackTrace();
             }
@@ -266,6 +286,9 @@ public class FogOfWar {
     private static void setLookAndFeel() {
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());
+            // Add custom options for the tabs
+            UIManager.put("TabbedPane.selectedBackground", Color.white);
+            UIManager.put("TabbedPane.showTabSeparators", true);
         } catch (Exception ex) {
             System.err.println("Failed to set Look and Feel. Default Look and Feel will be used.");
         }
@@ -303,16 +326,27 @@ public class FogOfWar {
                 dmTabbedPane.addTab(file.getName(), dmFogPanel);
                 int tabIndex = dmTabbedPane.indexOfComponent(dmFogPanel);
                 FontMetrics fontMetrics = dmTabbedPane.getFontMetrics(dmTabbedPane.getFont());
-                FixedSizeTabLabel tabLabel = new FixedSizeTabLabel(file.getName(), 140, fontMetrics);
+                FixedSizeTabLabel tabLabel = new FixedSizeTabLabel(file.getName(), 120, fontMetrics);
                 dmTabbedPane.setTabComponentAt(tabIndex, tabLabel);
 
                 playerTabbedPane.addTab(file.getName(), playerFogPanel);
+
+                // Get the current screen index
+                GraphicsConfiguration gc = dmFrame.getGraphicsConfiguration();
+                GraphicsDevice currentScreen = gc.getDevice();
+                int currentScreenIndex = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).indexOf(currentScreen);
+
+                // Adjust scale factor
+                Dimension dmScreenSize = getScreenResolution(currentScreenIndex);
+                Dimension playerScreenSize = getScreenResolution(currentScreenIndex);
+                dmFogPanel.adjustScaleFactor(dmScreenSize.getWidth(), dmScreenSize.getHeight());
+                playerFogPanel.adjustScaleFactor(playerScreenSize.getWidth(), playerScreenSize.getHeight());
             }
         }
     }
 
     // Save the state of all tabs in the Dungeon Master tabbed pane
-    private static void saveAllTabsState(JTabbedPane dmTabbedPane) throws IOException {
+    private static void saveAllTabsState(JFrame dmFrame, JTabbedPane dmTabbedPane) throws IOException {
         // Create an AllTabsState object to store the state of all images
         AllTabsState allTabsState = new AllTabsState();
         for (int i = 0; i < dmTabbedPane.getTabCount(); i++) {
@@ -343,8 +377,7 @@ public class FogOfWar {
     }
 
     // Load and apply the state of all tabs from a file
-    private static void openAllTabsState(JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane)
-            throws IOException, ClassNotFoundException {
+    private static void openAllTabsState(JFrame dmFrame, JTabbedPane dmTabbedPane, JTabbedPane playerTabbedPane)            throws IOException, ClassNotFoundException {
         // Configure and show a file chooser for opening the state file
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Open All Tabs State");
@@ -365,6 +398,11 @@ public class FogOfWar {
                 dmTabbedPane.removeAll();
                 playerTabbedPane.removeAll();
 
+                // Get the current screen index
+                GraphicsConfiguration gc = dmFrame.getGraphicsConfiguration();
+                GraphicsDevice currentScreen = gc.getDevice();
+                int currentScreenIndex = Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).indexOf(currentScreen);
+
                 // Create new FogPanels with the loaded image states and add them to the tabbed panes
                 for (ImageState imageState : allTabsState.getImageStates()) {
                     // Retrieve the image, fog layer, scale factor, and rotation from the image state
@@ -374,26 +412,33 @@ public class FogOfWar {
                     int rotation = imageState.getRotation();
 
                     // Create new FogPanels with the loaded image state
-                    FogPanel dmPanel = new FogPanel(image, fogLayer, true);
-                    FogPanel playerPanel = new FogPanel(image, fogLayer, false);
+                    FogPanel dmFogPanel = new FogPanel(image, fogLayer, true);
+                    FogPanel playerFogPanel = new FogPanel(image, fogLayer, false);
+
+                    // Get the screen resolution
+                    // Adjust scale factor
+                    Dimension dmScreenSize = getScreenResolution(0);
+                    Dimension playerScreenSize = getScreenResolution(1);
+                    dmFogPanel.adjustScaleFactor(dmScreenSize.getWidth(), dmScreenSize.getHeight());
+                    playerFogPanel.adjustScaleFactor(playerScreenSize.getWidth(), playerScreenSize.getHeight());
 
                     // Apply scaleFactor and rotation
-                    dmPanel.applyRotation(rotation);
-                    playerPanel.applyRotation(rotation);
-                    dmPanel.zoom(scaleFactor / dmPanel.getScaleFactor());
-                    playerPanel.zoom(scaleFactor / playerPanel.getScaleFactor());
+                    dmFogPanel.applyRotation(rotation);
+                    playerFogPanel.applyRotation(rotation);
+                    dmFogPanel.zoom(scaleFactor / dmFogPanel.getScaleFactor());
+                    playerFogPanel.zoom(scaleFactor / playerFogPanel.getScaleFactor());
 
                     // Add panels to the tabbed panes and link them
-                    dmPanel.setPlayerPanel(playerPanel);
-                    playerPanel.setPlayerPanel(dmPanel);
+                    dmFogPanel.setPlayerPanel(playerFogPanel);
+                    playerFogPanel.setPlayerPanel(dmFogPanel);
 
-                    dmTabbedPane.addTab(imageState.getTabName(), dmPanel);
-                    int tabIndex = dmTabbedPane.indexOfComponent(dmPanel);
+                    dmTabbedPane.addTab(imageState.getTabName(), dmFogPanel);
+                    int tabIndex = dmTabbedPane.indexOfComponent(dmFogPanel);
                     FontMetrics fontMetrics = dmTabbedPane.getFontMetrics(dmTabbedPane.getFont());
-                    FixedSizeTabLabel tabLabel = new FixedSizeTabLabel(imageState.getTabName(), 140, fontMetrics);
+                    FixedSizeTabLabel tabLabel = new FixedSizeTabLabel(imageState.getTabName(), 120, fontMetrics);
                     dmTabbedPane.setTabComponentAt(tabIndex, tabLabel);
 
-                    playerTabbedPane.addTab(imageState.getTabName(), playerPanel);
+                    playerTabbedPane.addTab(imageState.getTabName(), playerFogPanel);
                 }
             }
         }
