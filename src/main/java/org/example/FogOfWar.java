@@ -11,6 +11,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Arrays;
@@ -47,7 +49,12 @@ public class FogOfWar {
         JTabbedPane dmTabbedPane = new JTabbedPane();
         dmTabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         // Set fixed size for the tabs
-        dmTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight));
+        FixedSizeTabbedPaneUI dmTabbedPaneUI = new FixedSizeTabbedPaneUI(150, 25, tabIndex -> {
+            if (tabIndex >= 0 && tabIndex < playerTabbedPane.getTabCount()) {
+                playerTabbedPane.remove(tabIndex);
+            }
+        });
+        dmTabbedPane.setUI(dmTabbedPaneUI);
 
         // Players frame
         JFrame playerFrame = new JFrame("Players");
@@ -55,7 +62,9 @@ public class FogOfWar {
 
         // Players tabbed pane
         playerTabbedPane = new JTabbedPane();
-        playerTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight)); // Set fixed size for the tabs
+        playerTabbedPane.setUI(new FixedSizeTabbedPaneUI(tabWidth, tabHeight, null));
+
+        // Set fixed size for the tabs
         playerTabbedPane.setUI(new BasicTabbedPaneUI() {
             @Override
             protected int calculateTabAreaHeight(int tabPlacement, int horizRunCount, int maxTabHeight) {
@@ -71,8 +80,28 @@ public class FogOfWar {
         // Synchronize selected tab between Dungeon Master and Players tabbed panes
         dmTabbedPane.addChangeListener(e -> {
             int selectedIndex = dmTabbedPane.getSelectedIndex();
-            if (selectedIndex >= 0 && selectedIndex < dmTabbedPane.getTabCount() && playerTabbedPane.getTabCount() > 0) {
+            if (selectedIndex >= -0 && selectedIndex < dmTabbedPane.getTabCount() && playerTabbedPane.getTabCount() > 0) {
                 playerTabbedPane.setSelectedIndex(selectedIndex);
+            }
+        });
+
+        dmTabbedPane.addContainerListener(new ContainerListener() {
+            @Override
+            public void componentAdded(ContainerEvent e) {
+            }
+
+            @Override
+            public void componentRemoved(ContainerEvent e) {
+                int removedTabIndex = -1;
+                for (int i = 0; i < playerTabbedPane.getTabCount(); i++) {
+                    if (playerTabbedPane.getTitleAt(i).equals(e.getChild().getName())) {
+                        removedTabIndex = i;
+                        break;
+                    }
+                }
+                if (removedTabIndex != -1) {
+                    playerTabbedPane.remove(removedTabIndex);
+                }
             }
         });
 
@@ -239,7 +268,7 @@ public class FogOfWar {
         });
 
         // Fog radius slider
-        JSlider fogRadiusSlider = new JSlider(JSlider.HORIZONTAL, 5, 400, 10);
+        JSlider fogRadiusSlider = new JSlider(JSlider.HORIZONTAL, 50, 800, 200);
         fogRadiusSlider.addChangeListener(e -> {
             FogPanel selectedPanel = (FogPanel) dmTabbedPane.getSelectedComponent();
             if (selectedPanel != null) {

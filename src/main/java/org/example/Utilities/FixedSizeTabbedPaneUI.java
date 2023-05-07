@@ -4,6 +4,7 @@ import com.formdev.flatlaf.ui.FlatTabbedPaneUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.function.Consumer;
 
 
 public class FixedSizeTabbedPaneUI extends FlatTabbedPaneUI {
@@ -11,9 +12,13 @@ public class FixedSizeTabbedPaneUI extends FlatTabbedPaneUI {
     private final int tabHeight;
     private final Rectangle closeButtonRect = new Rectangle();
     private MouseAdapter mouseHandler;
-    public FixedSizeTabbedPaneUI(int tabWidth, int tabHeight) {
+
+    private Consumer<Integer> onTabClose;
+
+    public FixedSizeTabbedPaneUI(int tabWidth, int tabHeight, Consumer<Integer> onTabClose) {
         this.tabWidth = tabWidth;
         this.tabHeight = tabHeight;
+        this.onTabClose = onTabClose;
     }
 
     @Override
@@ -49,6 +54,9 @@ public class FixedSizeTabbedPaneUI extends FlatTabbedPaneUI {
                     int tabIndex = tabForCoordinate(tabPane, e.getX(), e.getY());
                     if (tabIndex >= 0 && closeButtonRect.contains(e.getX(), e.getY())) {
                         tabPane.remove(tabIndex);
+                        if (onTabClose != null) {
+                            onTabClose.accept(tabIndex);
+                        }
                     }
                 }
             };

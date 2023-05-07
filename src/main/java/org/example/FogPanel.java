@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage;
     private final boolean isDmPanel;
     private FogPanel playerPanel;
     private double scaleFactor = 1.0;
-    private static int fogRadius = 5;
+    private static int fogRadius = 200;
     private int rotation = 0;
     private Point lastMousePosition;
     private Point translation;
@@ -77,7 +77,7 @@ import java.awt.image.BufferedImage;
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                System.out.println("Mouse position: (" + e.getX() + ", " + e.getY() + ")");
+//                System.out.println("Mouse position: (" + e.getX() + ", " + e.getY() + ")");
                 if (isDmPanel) {
                     if (mouseMode == MouseMode.REMOVE_FOG) {
                         if (SwingUtilities.isLeftMouseButton(e)) {
@@ -199,7 +199,7 @@ import java.awt.image.BufferedImage;
         int fogX = (int) ((x - offsetX) / scaleFactor);
         int fogY = (int) ((y - offsetY) / scaleFactor);
 
-        System.out.println("Clearing fog at point (" + fogX + ", " + fogY + ")");
+//        System.out.println("Clearing fog at point (" + fogX + ", " + fogY + ")");
         Graphics2D g = fogLayer.createGraphics();
         g.setComposite(AlphaComposite.Clear);
 //        int scaledFogRadius = (int) (fogRadius * scaleFactor);
@@ -208,7 +208,7 @@ import java.awt.image.BufferedImage;
         g.dispose();
         repaint();
         if (playerPanel != null) {
-            System.out.println("Repainting player panel");
+//            System.out.println("Repainting player panel");
             playerPanel.repaint();
         }
     }
@@ -220,7 +220,7 @@ import java.awt.image.BufferedImage;
         int fogX = (int) ((x - offsetX) / scaleFactor);
         int fogY = (int) ((y - offsetY) / scaleFactor);
 
-        System.out.println("Adding fog at point (" + fogX + ", " + fogY + ")");
+//        System.out.println("Adding fog at point (" + fogX + ", " + fogY + ")");
         Graphics2D g = fogLayer.createGraphics();
         g.setComposite(AlphaComposite.SrcOver);
         g.setColor(Color.BLACK);
@@ -230,7 +230,7 @@ import java.awt.image.BufferedImage;
         g.dispose();
         repaint();
         if (playerPanel != null) {
-            System.out.println("Repainting player panel");
+//            System.out.println("Repainting player panel");
             playerPanel.repaint();
         }
     }
