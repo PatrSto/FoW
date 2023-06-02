@@ -351,6 +351,14 @@ import java.awt.image.BufferedImage;
         repaint();
     }
 
+//    public void centerImage() {
+//        int newX = (getWidth() - (int) (image.getWidth() * scaleFactor)) / 2;
+//        int newY = (getHeight() - (int) (image.getHeight() * scaleFactor)) / 2;
+//        setTranslation(new Point(newX, newY));
+//        repaint();
+//    }
+
+
 
     // Getters for image, fog layer, scale factor, and rotation
     public BufferedImage getImage() {

@@ -290,6 +290,14 @@ public class FogOfWar {
         sliderPanel.setPreferredSize(new Dimension(sliderWidth, sliderHeight));
         sliderPanel.setMaximumSize(new Dimension(sliderWidth, sliderHeight));
 
+//        JButton centerImageButton = new JButton("Center Image");
+//        centerImageButton.addActionListener(e -> {
+//            FogPanel selectedPanel = (FogPanel) dmTabbedPane.getSelectedComponent();
+//            if (selectedPanel != null) {
+//                selectedPanel.centerImage();
+//            }
+//        });
+
         toolbar.add(loadPicturesButton);
         toolbar.addSeparator();
         toolbar.add(saveButton);
@@ -307,6 +315,7 @@ public class FogOfWar {
         toolbar.addSeparator();
         toolbar.add(sliderPanel);
         toolbar.addSeparator();
+//        toolbar.add(centerImageButton);
 
         return toolbar;
     }
